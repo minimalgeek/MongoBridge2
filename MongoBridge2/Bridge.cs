@@ -88,7 +88,7 @@ namespace MongoBridge2
             catch (Exception e)
             {
                 // present error message on indicator panel and the Log-Trace window
-                YException.Show("Error while executing BasicSampleCS6 indicator.", e);
+                YException.Show("Error while executing MongoBridge2.EarningsCallTone: ", e);
             }
         }
 
