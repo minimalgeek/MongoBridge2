@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoBridge2", "MongoBridge2\MongoBridge2.csproj", "{A7C5E955-587C-4CDA-A118-312DAE9285FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoBridge2Test", "MongoBridge2Test\MongoBridge2Test.csproj", "{D359EC58-3334-4184-98F3-D601153D0DCD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A7C5E955-587C-4CDA-A118-312DAE9285FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7C5E955-587C-4CDA-A118-312DAE9285FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7C5E955-587C-4CDA-A118-312DAE9285FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7C5E955-587C-4CDA-A118-312DAE9285FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D359EC58-3334-4184-98F3-D601153D0DCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D359EC58-3334-4184-98F3-D601153D0DCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D359EC58-3334-4184-98F3-D601153D0DCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D359EC58-3334-4184-98F3-D601153D0DCD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

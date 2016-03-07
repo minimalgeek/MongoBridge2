@@ -1,0 +1,5 @@
+﻿// call the plugin
+aPlugInResult = MongoBridge2Func1(Close, 5);
+
+// plot plugin's result
+Plot(aPlugInResult, "aPlugInResult", colorRed);
