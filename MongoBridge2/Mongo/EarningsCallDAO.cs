@@ -8,7 +8,7 @@ using MongoDB.Driver;
 
 namespace MongoBridge2.Mongo
 {
-    class EarningsCallDAO
+    public class EarningsCallDAO
     {
         private const string URL = "mongodb://localhost";
         private const string DATABASE = "insider";

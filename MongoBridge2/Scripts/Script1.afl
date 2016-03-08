@@ -1,5 +1,28 @@
-﻿// call the plugin
-aPlugInResult = MongoBridge2Func1(Close, 5);
+﻿TraceTest();
+EarningsCallTone(Name());
 
-// plot plugin's result
-Plot(aPlugInResult, "aPlugInResult", colorRed);
+AddColumn(WordsCount, "WordsCount");
+AddColumn(PositiveCount, "PositiveCount");
+AddColumn(NegativeCount, "NegativeCount");
+AddColumn(StrongCount, "StrongCount");
+AddColumn(WeakCount, "WeakCount");
+AddColumn(ActiveCount, "ActiveCount");
+AddColumn(PassiveCount, "PassiveCount");
+AddColumn(OverstatedCount, "OverstatedCount");
+AddColumn(UnderstatedCount, "UnderstatedCount");
+AddColumn(HenryPositiveCount, "HenryPositiveCount");
+AddColumn(HenryNegativeCount, "HenryNegativeCount");
+
+AddColumn(QAndAWordsCount, "QAndAWordsCount");
+AddColumn(QAndAPositiveCount, "QAndAPositiveCount");
+AddColumn(QAndANegativeCount, "QAndANegativeCount");
+AddColumn(QAndAStrongCount, "QAndAStrongCount");
+AddColumn(QAndAWeakCount, "QAndAWeakCount");
+AddColumn(QAndAActiveCount, "QAndAActiveCount");
+AddColumn(QAndAPassiveCount, "QAndAPassiveCount");
+AddColumn(QAndAOverstatedCount, "QAndAOverstatedCount");
+AddColumn(QAndAUnderstatedCount, "QAndAUnderstatedCount");
+AddColumn(QAndAHenryPositiveCount, "QAndAHenryPositiveCount");
+AddColumn(QAndAHenryNegativeCount, "QAndAHenryNegativeCount");
+
+Filter = 1;
