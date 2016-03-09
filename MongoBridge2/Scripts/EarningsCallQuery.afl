@@ -1,0 +1,11 @@
+﻿TraceTest();
+
+Connect("mongodb://localhost", "insider");
+MongoQueryToAFL("earnings_call", "tradingSymbol=IBM", "h_tone.positiveCount;h_tone.negativeCount;q_and_a_h_tone.positiveCount;q_and_a_h_tone.negativeCount");
+
+AddColumn(h_tonePositiveCount, "Positive Count");
+AddColumn(h_toneNegativeCount, "Negative Count");
+AddColumn(q_and_a_h_tonePositiveCount, "Q & A Positive Count");
+AddColumn(q_and_a_h_toneNegativeCount, "Q & A Negative Count");
+
+Filter = 1;
