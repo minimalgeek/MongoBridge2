@@ -26,7 +26,7 @@ namespace MongoBridge2.Mongo
             return _collection.Find(new BsonDocument()).ToList();
         }
 
-        public ICollection<BsonDocument> findFiltered(string filterExpression)
+        public ICollection<BsonDocument> findFiltered(string filterExpression, string dateColumn)
         {
             char[] separatingChars = { ';' };
             char[] inExpSeparatingChars = { '=' };
@@ -43,7 +43,9 @@ namespace MongoBridge2.Mongo
                 }
             }
 
-            return _collection.Find(filter).ToList();
+            var sort = Builders<BsonDocument>.Sort.Descending(dateColumn);
+
+            return _collection.Find(filter).Sort(sort).ToList();
         }
     }
 }

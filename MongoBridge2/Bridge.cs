@@ -10,75 +10,39 @@ namespace MongoBridge2
 {
     public class Bridge : IndicatorBase
     {
-        private static ATAfl WordsCount = Init("WordsCount");
-
-        private static ATAfl PositiveCount = Init("PositiveCount");
-        private static ATAfl NegativeCount = Init("NegativeCount");
-        private static ATAfl StrongCount = Init("StrongCount");
-        private static ATAfl WeakCount = Init("WeakCount");
-        private static ATAfl ActiveCount = Init("ActiveCount");
-        private static ATAfl PassiveCount = Init("PassiveCount");
-        private static ATAfl OverstatedCount = Init("OverstatedCount");
-        private static ATAfl UnderstatedCount = Init("UnderstatedCount");
-
-        private static ATAfl HenryPositiveCount = Init("HenryPositiveCount");
-        private static ATAfl HenryNegativeCount = Init("HenryNegativeCount");
-
-        // Q and A
-
-        private static ATAfl QAndAWordsCount = Init("QAndAWordsCount");
-
-        private static ATAfl QAndAPositiveCount = Init("QAndAPositiveCount");
-        private static ATAfl QAndANegativeCount = Init("QAndANegativeCount");
-        private static ATAfl QAndAStrongCount = Init("QAndAStrongCount");
-        private static ATAfl QAndAWeakCount = Init("QAndAWeakCount");
-        private static ATAfl QAndAActiveCount = Init("QAndAActiveCount");
-        private static ATAfl QAndAPassiveCount = Init("QAndAPassiveCount");
-        private static ATAfl QAndAOverstatedCount = Init("QAndAOverstatedCount");
-        private static ATAfl QAndAUnderstatedCount = Init("QAndAUnderstatedCount");
-
-        private static ATAfl QAndAHenryPositiveCount = Init("QAndAHenryPositiveCount");
-        private static ATAfl QAndAHenryNegativeCount = Init("QAndAHenryNegativeCount");
-
-        private static ATAfl Init(string name)
-        {
-            ATAfl ata = new ATAfl(name);
-            ata.Set(new ATArray(ATFloat.Null));
-            return ata;
-        }
-
-        // non-static
-
-        private EarningsCallDAO dao;
-
-        public Bridge()
-            : base()
-        {
-            dao = new EarningsCallDAO();
-        }
-
-        [ABMethod]
-        public ATArray MongoMA(ATArray array, float period)
-        {
-            ATArray result = AFAvg.Ma(array, period);
-            return result;
-        }
+        private static GenericDAO dao;
+        private static Dictionary<string, ATArray> dataArrays;
 
         [ABMethod]
         public void TraceTest()
         {
             YTrace.Trace("TraceTest: Information", YTrace.TraceLevel.Information);
-         }
+        }
 
         [ABMethod]
-        public void EarningsCallTone(string tradingSymbol)
+        public void Connect(string url, string database, string collection)
         {
-            YTrace.Trace("Begin ECT method", YTrace.TraceLevel.Information);
+            YTrace.Trace("Connecting to: " + url + " - " + database + " - " + collection, YTrace.TraceLevel.Information);
+            dao = new GenericDAO(url, database, collection);
+            YTrace.Trace("Connected!", YTrace.TraceLevel.Information);
+        }
+
+        [ABMethod]
+        public void MongoQueryToAFL(string filterExpression, string dateColumn, string projection)
+        {
+            YTrace.Trace("Begin MongoQueryToAFL method: " + filterExpression, YTrace.TraceLevel.Information);
+            InitDataArrays(projection);
             try
             {
-                YTrace.Trace("Get all document for: " + tradingSymbol, YTrace.TraceLevel.Information);
-                ICollection<BsonDocument> list = dao.findByTradingSymbolAndSortByPublishDate(tradingSymbol);
-                //ICollection<BsonDocument> list = new List<BsonDocument>();
+                ICollection<BsonDocument> list = null;
+                try
+                {
+                    list = dao.findFiltered(filterExpression, dateColumn);
+                }
+                catch (Exception e)
+                {
+                    YTrace.Trace("Exception in DAO: " + e.ToString(), YTrace.TraceLevel.Error);
+                }
 
                 ATDateTime first = this.DateAndTime[0];
                 ATDateTime last = this.DateAndTime[this.DateAndTime.Length - 1];
@@ -87,34 +51,34 @@ namespace MongoBridge2
                 YTrace.Trace("First date: " + firstDate.ToString(), YTrace.TraceLevel.Information);
                 DateTime lastDate = new DateTime(last.Year, last.Month, last.Day);
                 YTrace.Trace("Last date: " + lastDate.ToString(), YTrace.TraceLevel.Information);
-
+                
                 DateTime dateIterator = firstDate;
                 int idx = 0;
 
-                // set null values at the beginning of the array
                 while (!dateIterator.Equals(lastDate))
                 {
                     YTrace.Trace("Check date: " + dateIterator.ToString(), YTrace.TraceLevel.Information);
                     
-                    BsonDocument foundDoc = SearchMatchingEC(list, dateIterator);
-                    AddToAllAFL(foundDoc, idx);
+                    BsonDocument foundDoc = SearchMatchingDocument(list, dateIterator, dateColumn);
+                    AddToAFLs(foundDoc, idx);
 
                     dateIterator = dateIterator.AddDays(1);
                     idx++;
                 }
+                InitAFLs();
             }
             catch (Exception e)
             {
                 YTrace.Trace("Error: " + e.ToString(), YTrace.TraceLevel.Error);
-                YException.Show("Error while executing MongoBridge2.EarningsCallTone: ", e);
+                YException.Show("Error while executing MongoQueryToAFL: ", e);
             }
         }
 
-        private BsonDocument SearchMatchingEC(ICollection<BsonDocument> list, DateTime amiDt)
+        private BsonDocument SearchMatchingDocument(ICollection<BsonDocument> list, DateTime amiDt, string dateColumn)
         {
             foreach (BsonDocument doc in list)
             {
-                DateTime dt = (DateTime)doc.GetElement("publishDate").Value;
+                DateTime dt = (DateTime)doc.GetElement(dateColumn).Value;
                 if (dt.Date == amiDt.Date)
                 {
                     return doc;
@@ -124,45 +88,75 @@ namespace MongoBridge2
             return null;
         }
 
-        private void AddToAllAFL(BsonDocument doc, int idx)
+        private void AddToAFLs(BsonDocument doc, int idx)
         {
             if (doc != null)
             {
                 YTrace.Trace("Found doc: " + doc.ToString(), YTrace.TraceLevel.Information);
+                char[] separatingChars = { '.' };
                 try
                 {
-                    WordsCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("words").Value.AsBsonArray.Count;
-                    
-                    PositiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["positiveCount"].AsInt32;
-                    NegativeCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["negativeCount"].AsInt32;
-                    StrongCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["strongCount"].AsInt32;
-                    WeakCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["weakCount"].AsInt32;
-                    ActiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["activeCount"].AsInt32;
-                    PassiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["passiveCount"].AsInt32;
-                    OverstatedCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["overstatedCount"].AsInt32;
-                    UnderstatedCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("tone").Value.AsBsonDocument["understatedCount"].AsInt32;
-
-                    HenryPositiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("h_tone").Value.AsBsonDocument["positiveCount"].AsInt32;
-                    HenryNegativeCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("h_tone").Value.AsBsonDocument["negativeCount"].AsInt32;
-
-                    QAndAWordsCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("qAndAWords").Value.AsBsonArray.Count;
-
-                    QAndAPositiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["positiveCount"].AsInt32;
-                    QAndANegativeCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["negativeCount"].AsInt32;
-                    QAndAStrongCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["strongCount"].AsInt32;
-                    QAndAWeakCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["weakCount"].AsInt32;
-                    QAndAActiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["activeCount"].AsInt32;
-                    QAndAPassiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["passiveCount"].AsInt32;
-                    QAndAOverstatedCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["overstatedCount"].AsInt32;
-                    QAndAUnderstatedCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_tone").Value.AsBsonDocument["understatedCount"].AsInt32;
-
-                    QAndAHenryPositiveCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_h_tone").Value.AsBsonDocument["positiveCount"].AsInt32;
-                    QAndAHenryNegativeCount.GetArray(ATFloat.Null, true)[idx] = doc.GetElement("q_and_a_h_tone").Value.AsBsonDocument["negativeCount"].AsInt32;
+                    foreach (KeyValuePair<string, ATArray> entry in dataArrays)
+                    {
+                        string[] parts = entry.Key.Split(separatingChars, System.StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 1) {
+                            entry.Value[idx] = GetAsFloat(doc.GetElement(parts[0]).Value);
+                        } else if (parts.Length == 2) {
+                            entry.Value[idx] = GetAsFloat(doc.GetElement(parts[0]).Value.AsBsonDocument[parts[1]]);
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
                     YTrace.Trace("======> ERROR: " + e.ToString(), YTrace.TraceLevel.Error);
                 }
+            }
+        }
+
+        private float GetAsFloat(BsonValue val)
+        {
+            if (val.IsInt32)
+            {
+                YTrace.Trace("Add <int> to list: " + val.ToString(), YTrace.TraceLevel.Information);
+                return (float)val.AsInt32;
+            }
+
+            if (val.IsInt64)
+            {
+                YTrace.Trace("Add <long> to list: " + val.ToString(), YTrace.TraceLevel.Information);
+                return (float)val.AsInt64;
+            }
+
+            if (val.IsDouble)
+            {
+                YTrace.Trace("Add <double> to list: " + val.ToString(), YTrace.TraceLevel.Information);
+                return (float)val.AsDouble;
+            }
+
+            YTrace.Trace("Unprocessed type: " + val.BsonType.ToString(), YTrace.TraceLevel.Information);
+            return ATFloat.Null;
+        }
+
+        private void InitDataArrays(string projection)
+        {
+            dataArrays = new Dictionary<string, ATArray>();
+
+            char[] separatingChars = { ';' };
+            string[] expressions = projection.Split(separatingChars, System.StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string expression in expressions)
+            {
+                dataArrays.Add(expression, new ATArray(ATFloat.Null));
+            }
+        }
+
+        private void InitAFLs()
+        {
+            foreach (KeyValuePair<string, ATArray> entry in dataArrays)
+            {
+                string saveKey = entry.Key.Replace('.', '_');
+                YTrace.Trace("ATAfl save to: " + saveKey + " => " + entry.Value.ToString(), YTrace.TraceLevel.Error);
+                ATAfl.SaveTo(saveKey, entry.Value);
             }
         }
     }
