@@ -45,25 +45,24 @@ namespace MongoBridge2
                 }
 
                 ATDateTime first = this.DateAndTime[0];
+                YTrace.Trace("First date (Ami): " + first.ToString(), YTrace.TraceLevel.Information);
                 ATDateTime last = this.DateAndTime[this.DateAndTime.Length - 1];
+                YTrace.Trace("Last date (Ami): " + last.ToString(), YTrace.TraceLevel.Information);
 
+                /*
                 DateTime firstDate = new DateTime(first.Year, first.Month, first.Day);
                 YTrace.Trace("First date: " + firstDate.ToString(), YTrace.TraceLevel.Information);
                 DateTime lastDate = new DateTime(last.Year, last.Month, last.Day);
                 YTrace.Trace("Last date: " + lastDate.ToString(), YTrace.TraceLevel.Information);
-                
-                DateTime dateIterator = firstDate;
-                int idx = 0;
+                */
 
-                while (!dateIterator.Equals(lastDate))
+                for (int idx = 0; idx < this.DateAndTime.Length; idx++)
                 {
+                    ATDateTime dateIterator = this.DateAndTime[idx];
                     YTrace.Trace("Check date: " + dateIterator.ToString(), YTrace.TraceLevel.Information);
-                    
+
                     BsonDocument foundDoc = SearchMatchingDocument(list, dateIterator, dateColumn);
                     AddToAFLs(foundDoc, idx);
-
-                    dateIterator = dateIterator.AddDays(1);
-                    idx++;
                 }
                 InitAFLs();
             }
@@ -74,12 +73,13 @@ namespace MongoBridge2
             }
         }
 
-        private BsonDocument SearchMatchingDocument(ICollection<BsonDocument> list, DateTime amiDt, string dateColumn)
+        private BsonDocument SearchMatchingDocument(ICollection<BsonDocument> list, ATDateTime amiDt, string dateColumn)
         {
+            DateTime dateTime = new DateTime(amiDt.Year, amiDt.Month, amiDt.Day);
             foreach (BsonDocument doc in list)
             {
                 DateTime dt = (DateTime)doc.GetElement(dateColumn).Value;
-                if (dt.Date == amiDt.Date)
+                if (dt.Date == dateTime.Date)
                 {
                     return doc;
                 }

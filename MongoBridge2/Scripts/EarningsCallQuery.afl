@@ -1,7 +1,7 @@
 ﻿TraceTest();
 
 Connect("mongodb://localhost", "insider", "earnings_call");
-MongoQueryToAFL("tradingSymbol=IBM", 
+MongoQueryToAFL("tradingSymbol=" + Name(), 
 				"publishDate", 
 				"h_tone.positiveCount;h_tone.negativeCount;q_and_a_h_tone.positiveCount;q_and_a_h_tone.negativeCount");
 
