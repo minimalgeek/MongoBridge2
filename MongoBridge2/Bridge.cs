@@ -155,7 +155,7 @@ namespace MongoBridge2
             foreach (KeyValuePair<string, ATArray> entry in dataArrays)
             {
                 string saveKey = entry.Key.Replace('.', '_');
-                YTrace.Trace("ATAfl save to: " + saveKey + " => " + entry.Value.ToString(), YTrace.TraceLevel.Error);
+                YTrace.Trace("ATAfl save to: " + saveKey, YTrace.TraceLevel.Information);
                 ATAfl.SaveTo(saveKey, entry.Value);
             }
         }
