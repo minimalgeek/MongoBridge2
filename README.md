@@ -1,6 +1,7 @@
 # MongoDB to AmiBroker Bridge
 
 A very basic implementation to support data exchange between MongoDB and AmiBroker.
+
 .NET for AmiBroker plugin is required!
 
 Example:
